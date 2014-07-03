@@ -14,7 +14,7 @@ class IllegalProblemException(Exception):
     pass
 
 def deal_status(customer, problem):
-    p = re.compile(ur'^(@咎儿 )?(.+?)[?？](.+?)?(@咎儿)?$')
+    p = re.compile(ur'^(@咎儿 )?(.+?)[?？](.+)?(@咎儿)?$')
     m = p.match(unicode(problem))
     if m is None:
         raise IllegalProblemException()
@@ -22,33 +22,37 @@ def deal_status(customer, problem):
         raise IllegalProblemException()
     # 拆分问题和选项
     question = m.group(2)
-    options = m.group(3)
-    # 拆分选项
-    if options is not None: options = options.strip()
-    if options is None or len(options) == 0:
+    options = _get_options(m.group(3), question)
+    return _deal_problem(customer, question, options)
+
+def deal_message(customer, problem):
+    p = re.compile(ur'^(.+?)[?？](.+)?$')
+    m = p.match(unicode(problem))
+    if m is None:
+        raise IllegalProblemException()
+    # 提取问题和选项
+    question = m.group(1)
+    options = _get_options(m.group(2), question)
+    return _deal_problem(customer, question, options)
+
+def _get_options(options, question):
+    opts = []
+    if options is not None:
+        # 按分号拆分，并去重
+        p = re.compile(u'[;；]{1}')
+        opts = set(p.split(options))
+        # 遍历去掉空白选项
+        for opt in opts:
+            if len(opt.strip()) == 0: opts.remove(opt)
+    if options is None or len(opts) == 0:
         # 不存在选项，从问题中查找选项
         p = re.compile(ur'(.+)([不没]\1)')
         m = p.search(question)
         if m is None:
             raise IllegalProblemException()
         else:
-            options = [m.group(1), m.group(2)]
-    else:
-        # 按分号拆分选项
-        p = re.compile(u'[;；]{1}')
-        options = set(p.split(options))
-    return _deal_problem(customer, question, options)
-
-def deal_message(customer, problem):
-    p = re.compile(ur'^(.+?)[?？](.+)$')
-    m = p.match(unicode(problem))
-    if m is None:
-        raise IllegalProblemException()
-    question = m.group(1)
-    options = m.group(2)
-    p = re.compile(u'[;；]{1}')
-    options = set(p.split(options))
-    return _deal_problem(customer, question, options)
+            opts = [m.group(1), m.group(2)]
+    return opts
 
 def _deal_problem(customer, question, options):
     result = {
