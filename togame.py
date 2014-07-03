@@ -38,12 +38,12 @@ def deal_message(customer, problem):
 def _get_options(options, question):
     opts = []
     if options is not None:
-        # 按分号拆分，并去重
+        # 按分号拆分
         p = re.compile(u'[;；]{1}')
+        # 去除重复选项
         opts = set(p.split(options))
-        # 遍历去掉空白选项
-        for opt in opts:
-            if len(opt.strip()) == 0: opts.remove(opt)
+        # 过滤空白选项
+        opts = filter(lambda x:len(x.strip())!=0, opts)
     if options is None or len(opts) == 0:
         # 不存在选项，从问题中查找选项
         p = re.compile(ur'(.+)([不没]\1)')
