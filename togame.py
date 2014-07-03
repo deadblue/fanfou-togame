@@ -14,16 +14,29 @@ class IllegalProblemException(Exception):
     pass
 
 def deal_status(customer, problem):
-    p = re.compile(ur'^(@咎儿 )?(.+?)[?？](.+?)(@咎儿)?$')
+    p = re.compile(ur'^(@咎儿 )?(.+?)[?？](.+?)?(@咎儿)?$')
     m = p.match(unicode(problem))
     if m is None:
         raise IllegalProblemException()
-    question = m.group(2)
-    options = m.group(3)
     if m.group(1) is None and m.group(4) is None:
         raise IllegalProblemException()
-    p = re.compile(u'[;；]{1}')
-    options = set(p.split(options))
+    # 拆分问题和选项
+    question = m.group(2)
+    options = m.group(3)
+    # 拆分选项
+    if options is not None: options = options.strip()
+    if options is None or len(options) == 0:
+        # 不存在选项，从问题中查找选项
+        p = re.compile(ur'(.+)([不没]\1)')
+        m = p.search(question)
+        if m is None:
+            raise IllegalProblemException()
+        else:
+            options = [m.group(1), m.group(2)]
+    else:
+        # 按分号拆分选项
+        p = re.compile(u'[;；]{1}')
+        options = set(p.split(options))
     return _deal_problem(customer, question, options)
 
 def deal_message(customer, problem):
