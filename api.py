@@ -24,13 +24,6 @@ class OAuthException(Exception):
 def oauth_rpc(url, method='GET'):
     url = '%s%s' % (_FANFOU_API_HOST, url)
     def rpc_invoker_creator(func):
-        arg_spec = inspect.getargspec(func)
-        arg_names = arg_spec.args
-        # 获取参数的默认值定义
-        arg_defs = {}
-        if arg_spec.defaults:
-            for i in xrange(-1, -1 - len(arg_spec.defaults), -1):
-                arg_defs[arg_names[i]] = arg_spec.defaults[i]
         def rpc_invoker(*args, **kwargs):
             # 准备调用API的参数
             params = [
@@ -40,20 +33,13 @@ def oauth_rpc(url, method='GET'):
                       ('oauth_timestamp', oauthlib.timestamp()),
                       ('oauth_nonce', oauthlib.nonce()),
                       ]
-            # 参数处理
-            for i in xrange(1, len(arg_names)):
-                arg_name = arg_names[i]
-                arg_value = None
-                if kwargs is not None and kwargs.has_key(arg_name):
-                    arg_value = kwargs[arg_name]
-                elif args is not None and i < len(args):
-                    arg_value = args[i]
-                elif arg_defs.has_key(arg_name):
-                    arg_value = arg_defs[arg_name]
-                if arg_value is not None:
-                    if type(arg_value) is unicode:
-                        arg_value = arg_value.encode('utf-8')
-                    params.append((arg_name, arg_value))
+            # 传入参数的处理
+            call_args = inspect.getcallargs(func, *args, **kwargs)
+            for k,v in call_args.items():
+                if k == 'self' or v is None: continue
+                if type(v) is unicode:
+                    v = v.encode('utf-8')
+                params.append((k, v))
             # 计算签名
             secert = '%s&%s' % (config.FANFOU_API_SECERT, config.FANFOU_OAUTH_TOKEN_SECERT)
             signature = oauthlib.signature(method, url, params, secert)
