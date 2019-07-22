@@ -1,13 +1,16 @@
-application: *
-version: 1
-runtime: python27
-api_version: 1
-threadsafe: true
+runtime: python37
+
+env_variables:
+  MONGO_URI: ""
+  FANFOU_API_KEY: ""
+  FANFOU_API_SECRET: ""
+  FANFOU_OAUTH_TOKEN: ""
+  FANFOU_OAUTH_SECRET: ""
+  GOOGLE_APPLICATION_CREDENTIALS: "credentials.json"
 
 handlers:
-- url: /.*
-  script: main.app
-
-libraries:
-- name: webapp2
-  version: latest
+  - url: /(.*\.(gif|jpg|jpeg|png|ico))
+    static_files: assets/\1
+    upload: assets/.*$
+  - url: /.*
+    script: auto

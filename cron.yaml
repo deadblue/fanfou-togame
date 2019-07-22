@@ -1,4 +1,3 @@
 cron:
-- description: fetch fanfou mentions and emssage
-  url: /fetch
+- url: /fetch
   schedule: every 1 minutes

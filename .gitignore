@@ -1,4 +1,8 @@
 
 .idea/
+venv/
+
+credentials.json
+app-prod.yaml
 
 test*.py

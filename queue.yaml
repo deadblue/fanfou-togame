@@ -1,3 +1,0 @@
-queue:
-- name: togame
-  rate: 10/s
