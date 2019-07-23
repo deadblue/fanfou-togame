@@ -7,6 +7,7 @@ import inspect
 import logging
 import os
 import sys
+import traceback
 
 import requests
 
@@ -26,6 +27,7 @@ def fanfou_api(path, method='GET'):
             return client.oauth_call_api(method, api_url, params)
         return invoker
     return invoker_wrapper
+
 
 class Client(object):
 
@@ -71,16 +73,27 @@ class Client(object):
             'oauth_nonce': util.nonce()
         })
         params['oauth_signature'] = self._calculate_signature(method, url, params)
-        # send request
-        headers = {
-            'Accept': '*/*',
-            'Authorization': 'OAuth'
+        # prepare arguments
+        request_kwargs = {
+            'headers': {
+                'Accept': '*/*',
+                'Authorization': 'OAuth'
+            },
+            'timeout': (10.0, 30.0)
         }
         if 'GET' == method:
-            resp = self._agent.get(url, params=params, headers=headers)
+            request_kwargs['params'] = params
         else:
-            resp = self._agent.post(url, data=params, headers=headers)
-        return resp.json()
+            request_kwargs['data'] = params
+        # send request
+        result = None
+        try:
+            resp = self._agent.request(method, url, **request_kwargs)
+            resp.raise_for_status()
+            result = resp.json()
+        except:
+            _logger.error('Call API failed: %s', traceback.format_exc())
+        return result
 
     def _calculate_signature(self, method, url, params):
         # sort params
@@ -97,8 +110,16 @@ class Client(object):
             sign_secret += self._oauth_secret
         return util.signature(sign_secret, basestring)
 
-    @fanfou_api('account/verify_credentials.json', 'POST')
+    @fanfou_api('account/rate_limit_status.json')
+    def account_rate_limit_status(self):
+        pass
+
+    @fanfou_api('account/verify_credentials.json')
     def account_verify_credentials(self, mode='default'):
+        pass
+
+    @fanfou_api('account/notification.json')
+    def account_notification(self):
         pass
 
     @fanfou_api('statuses/mentions.json')
@@ -110,7 +131,7 @@ class Client(object):
         pass
 
     @fanfou_api('direct_messages/inbox.json')
-    def direct_message_inbox(self, count=60, since_id=None, max_id=None, mode='lite'):
+    def direct_message_inbox(self, count=60, since_id=None, mode='lite'):
         pass
 
     @fanfou_api('direct_messages/new.json', 'POST')
@@ -120,3 +141,4 @@ class Client(object):
     @fanfou_api('direct_messages/destroy.json', 'POST')
     def direct_message_destroy(self, id):
         pass
+
