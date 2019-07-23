@@ -47,16 +47,6 @@ class Client(object):
             sys.version_info.major, sys.version_info.minor, requests.__version__
         )
         self._agent = agent
-        # merge environment variables
-        self._merge_environ()
-
-    def _merge_environ(self):
-        if self._api_key is None:
-            self._api_key = os.environ.get(util.ENV_API_KEY)
-        if self._api_secret is None:
-            self._api_secret = os.environ.get(util.ENV_API_SECRET)
-        self._oauth_token = os.environ.get(util.ENV_OAUTH_TOKEN)
-        self._oauth_secret = os.environ.get(util.ENV_OAUTH_SECRET)
 
     def oauth_set_token(self, token, token_secret):
         self._oauth_token = token

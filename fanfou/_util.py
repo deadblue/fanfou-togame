@@ -11,13 +11,6 @@ import base64
 API_HOST = 'http://api.fanfou.com'
 OAUTH_SIGNATURE_METHOD = 'HMAC-SHA1'
 
-# environment names
-ENV_API_KEY      = 'FANFOU_API_KEY'
-ENV_API_SECRET   = 'FANFOU_API_SECRET'
-ENV_OAUTH_TOKEN  = 'FANFOU_OAUTH_TOKEN'
-ENV_OAUTH_SECRET = 'FANFOU_OAUTH_SECRET'
-
-
 def timestamp():
     return int(time.time() * 1000)
 
