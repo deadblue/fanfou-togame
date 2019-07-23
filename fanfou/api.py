@@ -79,7 +79,7 @@ class Client(object):
                 'Accept': '*/*',
                 'Authorization': 'OAuth'
             },
-            'timeout': (10.0, 30.0)
+            'timeout': (10.0, 20.0)
         }
         if 'GET' == method:
             request_kwargs['params'] = params
