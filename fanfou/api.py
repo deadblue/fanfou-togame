@@ -5,7 +5,6 @@ __author__ = 'deadblue'
 from urllib.parse import quote, urlencode
 import inspect
 import logging
-import os
 import sys
 import traceback
 
@@ -131,4 +130,3 @@ class Client(object):
     @fanfou_api('direct_messages/destroy.json', 'POST')
     def direct_message_destroy(self, id):
         pass
-
