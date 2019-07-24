@@ -75,13 +75,16 @@ class Client(object):
         else:
             request_kwargs['data'] = params
         # send request
-        result = None
+        resp, result = None, None
         try:
             resp = self._agent.request(method, url, **request_kwargs)
             resp.raise_for_status()
             result = resp.json()
         except:
             _logger.error('Call API failed: %s', traceback.format_exc())
+        finally:
+            if resp is not None:
+                resp.close()
         return result
 
     def _calculate_signature(self, method, url, params):
