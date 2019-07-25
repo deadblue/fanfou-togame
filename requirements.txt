@@ -3,4 +3,5 @@ pymongo==3.8.0
 dnspython==1.16.0
 requests==2.22.0
 google-api-python-client==1.7.9
+google-cloud-logging==1.11.0
 google-cloud-tasks==1.1.0

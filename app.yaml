@@ -2,6 +2,7 @@ runtime: python37
 
 env_variables:
   MONGO_URI: ""
+  FANFOU_ACCOUNT: ""
   FANFOU_API_KEY: ""
   FANFOU_API_SECRET: ""
   FANFOU_OAUTH_TOKEN: ""
