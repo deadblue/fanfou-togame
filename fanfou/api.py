@@ -2,11 +2,11 @@
 
 __author__ = 'deadblue'
 
-from urllib.parse import quote, urlencode
 import inspect
 import logging
 import sys
 import traceback
+import urllib.parse
 
 import requests
 
@@ -77,30 +77,71 @@ class Client(object):
         # send request
         resp, result = None, None
         try:
-            resp = self._agent.request(method, url, **request_kwargs)
-            resp.raise_for_status()
-            result = resp.json()
+            with self._agent.request(method, url, **request_kwargs) as resp:
+                if resp.status_code == 200:
+                    result = resp.json()
         except:
             _logger.error('Call API failed: %s', traceback.format_exc())
-        finally:
-            if resp is not None:
-                resp.close()
         return result
 
     def _calculate_signature(self, method, url, params):
         # sort params
         sorted_params = sorted(params.items(), key=lambda p:p[0])
         # build basestring
-        querystring = urlencode(sorted_params, quote_via=quote)
+        querystring = urllib.parse.urlencode(sorted_params, quote_via=urllib.parse.quote)
         basestring = '&'.join([
-            method, quote(url, safe=''),
-            quote(querystring, safe='')
+            method, urllib.parse.quote(url, safe=''),
+            urllib.parse.quote(querystring, safe='')
         ])
         _logger.debug('basestring => [%s]', basestring)
         sign_secret = '%s&' % self._api_secret
         if self._oauth_secret is not None:
             sign_secret += self._oauth_secret
         return util.signature(sign_secret, basestring)
+
+    def oauth_authorize_request(self):
+        # request token for authorizing
+        params = {
+            'oauth_consumer_key': self._api_key,
+            'oauth_signature_method': util.OAUTH_SIGNATURE_METHOD,
+            'oauth_timestamp': util.timestamp(),
+            'oauth_nonce': util.nonce()
+        }
+        params['oauth_signature'] = self._calculate_signature('GET', util.API_REQUEST_TOKEN, params)
+        with self._agent.get(util.API_REQUEST_TOKEN, params=params) as resp:
+            result = urllib.parse.parse_qsl(resp.text)
+            for name, value in result:
+                if 'oauth_token' == name:
+                    self._oauth_token = value
+                elif 'oauth_token_secret' == name:
+                    self._oauth_secret = value
+        # build authorize url
+        qs = urllib.parse.urlencode({
+            'oauth_token': self._oauth_token,
+            'oauth_callback': 'oob'
+        }, quote_via=urllib.parse.quote)
+        return '%s?%s' % (
+            util.API_AUTHORIZE, qs
+        )
+
+    def oauth_authorize(self, verify_code):
+        params = {
+            'oauth_consumer_key': self._api_key,
+            'oauth_token': self._oauth_token,
+            'oauth_verifier': verify_code,
+            'oauth_signature_method': util.OAUTH_SIGNATURE_METHOD,
+            'oauth_timestamp': util.timestamp(),
+            'oauth_nonce': util.nonce()
+        }
+        params['oauth_signature'] = self._calculate_signature('POST', util.API_ACCESS_TOKEN, params)
+        with self._agent.post(util.API_ACCESS_TOKEN, data=params) as resp:
+            result = urllib.parse.parse_qsl(resp.text)
+            for name, value in result:
+                if 'oauth_token' == name:
+                    self._oauth_token = value
+                elif 'oauth_token_secret' == name:
+                    self._oauth_secret = value
+        return self._oauth_token, self._oauth_secret
 
     @fanfou_api('account/rate_limit_status.json')
     def account_rate_limit_status(self):

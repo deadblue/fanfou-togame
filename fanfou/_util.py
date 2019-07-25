@@ -9,6 +9,10 @@ import hashlib
 import base64
 
 API_HOST = 'http://api.fanfou.com'
+API_REQUEST_TOKEN = 'http://fanfou.com/oauth/request_token'
+API_AUTHORIZE = 'http://fanfou.com/oauth/authorize'
+API_ACCESS_TOKEN = 'http://fanfou.com/oauth/access_token'
+
 OAUTH_SIGNATURE_METHOD = 'HMAC-SHA1'
 
 def timestamp():
