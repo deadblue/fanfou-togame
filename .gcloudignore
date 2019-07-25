@@ -21,7 +21,7 @@ __pycache__/
 /setup.cfg
 
 # Python virtualenv
-venv
+/venv/
 
 # Porject files
 .idea

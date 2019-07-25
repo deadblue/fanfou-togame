@@ -1,8 +1,11 @@
 
-.idea/
-venv/
+/.idea/
+/venv/
+__pycache__/
 
 credentials.json
+
 app-prod.yaml
+app-test.yaml
 
 test*.py
