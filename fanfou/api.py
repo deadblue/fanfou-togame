@@ -88,16 +88,16 @@ class Client(object):
         # sort params
         sorted_params = sorted(params.items(), key=lambda p:p[0])
         # build basestring
-        querystring = urllib.parse.urlencode(sorted_params, quote_via=urllib.parse.quote)
-        basestring = '&'.join([
+        query_string = urllib.parse.urlencode(sorted_params, quote_via=urllib.parse.quote)
+        base_string = '&'.join([
             method, urllib.parse.quote(url, safe=''),
-            urllib.parse.quote(querystring, safe='')
+            urllib.parse.quote(query_string, safe='')
         ])
-        _logger.debug('basestring => [%s]', basestring)
+        _logger.debug('basestring => [%s]', base_string)
         sign_secret = '%s&' % self._api_secret
         if self._oauth_secret is not None:
             sign_secret += self._oauth_secret
-        return util.signature(sign_secret, basestring)
+        return util.signature(sign_secret, base_string)
 
     def oauth_authorize_request(self):
         # request token for authorizing
