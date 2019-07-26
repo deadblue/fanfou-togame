@@ -50,7 +50,7 @@ def handler():
     # store the requests to DB
     req_ids = context.db.store_requests(reqs)
 
-    # create tasks to slove them
+    # create tasks to solve them
     queue_path, task_count = context.tasks_client.queue_path(
         context.project_id, context.location_id, _TASK_QUEUE_NAME
     ), 0
