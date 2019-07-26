@@ -16,12 +16,12 @@ def handler():
     if req is None:
         return 'No such request.', 200
 
-    source_type, quest = req['source_type'], togame.parse(req)
+    quest = togame.parse(req)
     if quest is None:
         return 'Invalid request.', 200
     answer = togame.solve(quest)
 
-    if source_type == 'status':
+    if 'status' == req['source_type']:
         reply = '@%s 结果发表%s %s' % (
             req['user_name'], kaomoji.one(), str(answer)
         )
@@ -29,7 +29,7 @@ def handler():
         context.fanfou_client.status_update(
             status=reply, in_reply_to_status_id=req['source_id']
         )
-    elif source_type == 'message':
+    elif 'message' == req['source_type']:
         reply = '结果发表%s %s' % (
             kaomoji.one(), str(answer)
         )
