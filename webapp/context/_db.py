@@ -96,11 +96,10 @@ class DB:
         result = coll.insert_many(requests)
         return result.inserted_ids
 
-    def take_request(self, request_id, delete=False):
+    def get_request(self, request_id):
         """
-        Get request and delete it from DB.
+        Get request from DB.
         :param request_id: request ID
-        :param delete: If true, delete the request from DB after find
         :return:
         """
         doc_id = bson.objectid.ObjectId(request_id)
@@ -108,12 +107,19 @@ class DB:
         doc = coll.find_one(filter={
             '_id': doc_id
         })
-        # delete the request from DB
-        if doc is not None and delete:
-            coll.delete_one(filter={
-                '_id': doc_id
-            })
         return doc
+
+    def remove_request(self, request_id):
+        """
+        Delete request from DB.
+        :param request_id: request ID
+        :return:
+        """
+        doc_id = bson.objectid.ObjectId(request_id)
+        coll = self._db.get_collection(COLLECTION_REQUEST)
+        coll.delete_one({
+            '_id': doc_id
+        })
 
     def release(self):
         _logger.info('Closing mongo connections ...')
