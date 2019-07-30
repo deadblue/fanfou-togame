@@ -6,6 +6,8 @@ import datetime
 import logging
 import traceback
 
+from google.api_core import retry
+
 from webapp import context
 
 _DATETIME_FORMAT = '%a %b %d %H:%M:%S %z %Y'
@@ -61,7 +63,7 @@ def handler():
                     'http_method': 'GET',
                     'relative_uri': '/solve?request_id=%s' % str(req_id)
                 }
-            })
+            }, retry=retry.if_transient_error)
             task_count += 1
         except:
             _logger.error('Create task failed: %s', traceback.format_exc())
