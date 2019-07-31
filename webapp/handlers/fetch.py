@@ -8,7 +8,7 @@ import traceback
 
 from google.api_core import retry
 
-from webapp import context
+from webapp import context, http_status
 
 _DATETIME_FORMAT = '%a %b %d %H:%M:%S %z %Y'
 _TASK_QUEUE_NAME = 'solve-queue'
@@ -44,7 +44,7 @@ def handler():
                 'create_time': datetime.datetime.strptime(message['created_at'], _DATETIME_FORMAT)
             })
     if len(reqs) == 0:
-        return 'No new request', 200
+        return '', http_status.NO_CONTENT
 
     # update bookmark
     context.db.update_bookmark(last_status_id, last_message_id)
@@ -68,4 +68,5 @@ def handler():
         except:
             _logger.error('Create task failed: %s', traceback.format_exc())
     _logger.info('Create tasks: %d', task_count)
-    return 'Create tasks: %d.' % task_count, 200
+
+    return 'Create tasks: %d.' % task_count, http_status.ACCEPTED

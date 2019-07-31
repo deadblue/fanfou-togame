@@ -4,7 +4,7 @@ __author__ = 'deadblue'
 
 import flask
 
-from webapp import context
+from webapp import context, http_status
 import togame
 import kaomoji
 
@@ -17,17 +17,20 @@ class ReplyException(Exception):
 def handler():
     req_id = flask.request.values.get('request_id')
     if req_id is None:
-        return 'Nothing to do.', 200
+        return '', http_status.BAD_REQUEST
+
     req = context.db.get_request(request_id=req_id)
     if req is None:
-        return 'No such request.', 200
+        return 'Request has been solved', http_status.ALREADY_DONE
 
     quest = togame.parse(req)
     if quest is None:
-        return 'Invalid request.', 200
-    answer = togame.solve(quest)
+        # invalid request, remove it and return
+        context.db.remove_request(req_id)
+        return 'Ignored', http_status.IGNORED
 
     try:
+        answer = togame.solve(quest)
         if 'status' == req['source_type']:
             reply = '@%s 结果发表%s %s' % (
                 req['user_name'], kaomoji.one(), str(answer)
@@ -52,9 +55,9 @@ def handler():
             # delete message
             context.fanfou_client.direct_message_destroy(req['source_id'])
             context.fanfou_client.direct_message_destroy(result['id'])
-        # delete request from DB
+        # remove request from DB
         context.db.remove_request(req_id)
     except ReplyException:
-        return 'Retry', 500
+        return 'Retry for reply failed', http_status.INTERNAL_SERVER_ERROR
 
-    return 'Solved', 200
+    return 'Solved', http_status.OK
