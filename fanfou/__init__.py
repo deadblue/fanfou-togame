@@ -2,6 +2,7 @@
 
 __author__ = 'deadblue'
 
-__all__ = ['APIClient']
+__all__ = ['Client', 'is_error_result']
 
-from fanfou.api import Client as APIClient
+from fanfou.api import Client
+from fanfou._util import is_error_result

@@ -2,11 +2,16 @@
 
 __author__ = 'deadblue'
 
+import logging
+
 import flask
 
 from webapp import context, http_status
+import fanfou
 import togame
 import kaomoji
+
+_logger = logging.getLogger(__name__)
 
 class ReplyException(Exception):
     
@@ -39,8 +44,9 @@ def handler():
             result = context.fanfou_client.status_update(
                 status=reply, in_reply_to_status_id=req['source_id']
             )
-            if result is None:
-                raise ReplyException()
+            has_error, error_message = fanfou.is_error_result(result)
+            if has_error:
+                _logger.error('Reply status failed: %s', error_message)
         elif 'message' == req['source_type']:
             reply = '结果发表%s %s' % (
                 kaomoji.one(), str(answer)
@@ -50,11 +56,13 @@ def handler():
                 user=req['user_id'], text=reply,
                 in_reply_to_id=req['source_id']
             )
-            if result is None:
-                raise ReplyException()
-            # delete message
-            context.fanfou_client.direct_message_destroy(req['source_id'])
-            context.fanfou_client.direct_message_destroy(result['id'])
+            has_error, error_message = fanfou.is_error_result(result)
+            if has_error:
+                _logger.error('Send message failed: %s', error_message)
+            else:
+                # delete message
+                context.fanfou_client.direct_message_destroy(req['source_id'])
+                context.fanfou_client.direct_message_destroy(result['id'])
         # remove request from DB
         context.db.remove_request(req_id)
     except ReplyException:

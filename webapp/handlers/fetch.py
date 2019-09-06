@@ -9,6 +9,7 @@ import traceback
 from google.api_core import retry
 
 from webapp import context, http_status
+import fanfou
 
 _DATETIME_FORMAT = '%a %b %d %H:%M:%S %z %Y'
 _TASK_QUEUE_NAME = 'solve-queue'
@@ -16,11 +17,14 @@ _TASK_QUEUE_NAME = 'solve-queue'
 _logger = logging.getLogger(__name__)
 
 def handler():
-    # fetch mention statuses and direct messages
     bookmark, reqs = context.db.get_bookmark(), []
     last_status_id, last_message_id = None, None
+    # fetch mention statuses
     statuses = context.fanfou_client.status_mentions(since_id=bookmark['status_id'])
-    if statuses is not None and len(statuses) > 0:
+    has_error, error_message = fanfou.is_error_result(statuses)
+    if has_error:
+        _logger.error('Fetch statuses failed: %s', error_message)
+    elif len(statuses) > 0:
         last_status_id = statuses[0]['id']
         for status in statuses:
             reqs.append({
@@ -31,8 +35,12 @@ def handler():
                 'text': status['text'],
                 'create_time': datetime.datetime.strptime(status['created_at'], _DATETIME_FORMAT)
             })
+    # fetch direct messages
     messages = context.fanfou_client.direct_message_inbox(since_id=bookmark['message_id'])
-    if messages is not None and len(messages) > 0:
+    has_error, error_message = fanfou.is_error_result(statuses)
+    if has_error:
+        _logger.error('Fetch messages failed: %s', error_message)
+    elif len(messages) > 0:
         last_message_id = messages[0]['id']
         for message in messages:
             reqs.append({

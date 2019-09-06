@@ -75,13 +75,20 @@ class Client(object):
         else:
             request_kwargs['data'] = params
         # send request
-        resp, result = None, None
-        try:
-            with self._agent.request(method, url, **request_kwargs) as resp:
-                if resp.status_code == 200:
-                    result = resp.json()
-        except:
-            _logger.error('Call API failed: %s', traceback.format_exc())
+        retry, result = True, None
+        while retry:
+            try:
+                with self._agent.request(method, url, **request_kwargs) as resp:
+                    if 200 <= resp.status_code < 500:
+                        result = resp.json()
+                        retry = False
+            except requests.ConnectionError:
+                _logger.error('Retry calling API for network error!')
+            except requests.Timeout:
+                _logger.error('Retry calling API for request timeount!')
+            except Exception as ue:
+                _logger.error('Unexpected error: %r', ue)
+                retry = False
         return result
 
     def _calculate_signature(self, method, url, params):

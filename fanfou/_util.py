@@ -28,3 +28,10 @@ def signature(secret, message):
         message = message.encode()
     sign = hmac.new(secret, message, hashlib.sha1)
     return base64.b64encode( sign.digest() )
+
+def is_error_result(api_result):
+    if api_result is None:
+        return True, 'Empty result!'
+    elif 'error' in api_result:
+        return True, api_result['error']
+    return False, None
