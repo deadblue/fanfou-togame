@@ -82,6 +82,8 @@ class Client(object):
                     if 200 <= resp.status_code < 500:
                         result = resp.json()
                         retry = False
+                    else:
+                        _logger.warning('Unexpected API response: %s', resp.text)
             except requests.ConnectionError:
                 _logger.error('Retry calling API for network error!')
             except requests.Timeout:
